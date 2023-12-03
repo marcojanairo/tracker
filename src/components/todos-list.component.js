@@ -21,7 +21,7 @@ export default class TodosList extends Component {
         // // this is for testing
         // this.setState({
         // todos: [{activity:'t1'},{activity:'t2'},{activity:'t3'}] // })
-        axios.get('http://localhost:5000/todos/')
+        axios.get('https://tracker-fe-practice.onrender.com/todos/')
             .then(response => {
                 this.setState({ todos: response.data })
             })
@@ -30,7 +30,7 @@ export default class TodosList extends Component {
             })
     }
     deleteTodo(id) {
-        axios.delete('http://localhost:5000/todos/' + id)
+        axios.delete('https://tracker-fe-practice.onrender.com/todos/' + id)
             .then(response => { console.log(response.data) });
         this.setState({
             todos: this.state.todos.filter(el => el._id !== id)

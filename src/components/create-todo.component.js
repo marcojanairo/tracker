@@ -23,7 +23,7 @@ export default class CreateTodo extends Component {
             activity: this.state.activity,
         };
         console.log(activityvar);
-        axios.post("http://localhost:5000/todos/add", activityvar)
+        axios.post("https://tracker-fe-practice.onrender.com/todos/add", activityvar)
             .then((res) => {
             window.location = "/";
         });
