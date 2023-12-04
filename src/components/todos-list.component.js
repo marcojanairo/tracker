@@ -32,7 +32,7 @@ export default class TodosList extends Component {
         // Initializes the component's state with an empty array for todos. State is used to manage data that may change over time and trigger re-renders.
         this.state =
         {
-            todos: [],
+            todos: [], // setup todos as an array
             editingTodo: null, // Keep track of the todo being edited
         };
     }
@@ -44,6 +44,7 @@ export default class TodosList extends Component {
         axios
             .get('https://tracker-fe-practice.onrender.com/todos/')
             .then(response => {
+                console.log(response.data); // Log the received data
                 this.setState({ todos: response.data || [] });
             })
             .catch((error) => {
@@ -72,13 +73,17 @@ export default class TodosList extends Component {
         axios
           .post(`https://tracker-fe-practice.onrender.com/todos/update/${_id}`, { activity })
           .then((response) => {
-            console.log("Updated successful!", response.data);
-            // Clear the editingTodo and update the state with the new todos
-            this.setState({
-              editingTodo: null,
-              todos: response.data,
-            });
-          })
+              console.log("Updated successful!", response.data);
+              
+              if (Array.isArray(response.data)) {
+                  // Clear the editingTodo and update the state with the new todos
+                this.setState({
+                    editingTodo: null,
+                    todos: response.data,
+                  });
+              } 
+              
+            })
           .catch((error) => {
               console.error("Updated failed :(", error.response);
             // console.log(error);
