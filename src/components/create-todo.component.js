@@ -21,6 +21,7 @@ export default class CreateTodo extends Component {
         e.preventDefault();
         const activityvar = {
             activity: this.state.activity,
+            completed: false
         };
         console.log(activityvar);
         axios.post("https://tracker-fe-practice.onrender.com/todos/add", activityvar)

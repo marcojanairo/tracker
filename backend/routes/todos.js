@@ -12,8 +12,9 @@ router.route("/").get(async (req, res) => {
 
 router.route("/add").post(async (req, res) => {
     const activity = req.body.activity;
+    const completed = req.body.completed;
     // create a new Activity object
-    const newTodo = await new Todo({ activity });
+    const newTodo = await new Todo({ activity, completed });
     
     try {
         await newTodo.save();
@@ -45,8 +46,11 @@ router.route("/update/:id").post(async (req, res) => {
     try {
         const todo = await Todo.findById(req.params.id);
         todo.activity = req.body.activity;
+        todo.completed = req.body.completed;
 
         await todo.save();
+
+
         res.json("Todo updated!");
     } catch (err) {
         res.status(400).json("Error: " + err);

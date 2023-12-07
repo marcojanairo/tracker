@@ -5,7 +5,16 @@ const Schema = mongoose.Schema;
 
 // Create a Schema object
 const todoSchema = new Schema({
-    activity: { type: String, required: true },
+    activity:
+    {
+        type: String,        
+    },
+    
+    completed:
+    {
+        type: Boolean,    
+    },
+
 });
 
 // This Activitry creates the collection called activitymodels

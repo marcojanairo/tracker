@@ -7,7 +7,16 @@ import axios from 'axios'
 // Functional component ('Todo') that represents a single row in the table displaying the to-do list. It takes 'props' as an argument, which includes the to-do item ('props.todo') and a function to delete the to-do item ('props.deleteTodo'
 const Todo = props => (
     <tr className="d-flex">
-    <td className='col-10'>{props.todo.activity}</td>
+        <td className='col-1'>
+            <input
+                type="checkbox"
+                checked={props.todo.completed}
+                onChange={() => props.toggleTodoCompleted(props.todo._id)}
+            />
+        </td>
+        <td className={`col-9 ${props.todo.completed ? `completed` : ''}`}>
+            {props.todo.activity}
+        </td>    
         <td className='col-2' style={{ textAlign: "right" }}>
             <button onClick={() => { props.editTodo(props.todo._id) }} >EDIT</button>
             <button onClick={() => { props.deleteTodo(props.todo._id) }} >DELETE</button>
@@ -25,6 +34,7 @@ export default class TodosList extends Component {
         super(props);
 
         // Binds the deleteTodo method to the current instance of the component. This is necessary to make sure that this inside deleteTodo refers to the component instance.
+        this.toggleTodoCompleted = this.toggleTodoCompleted.bind(this);
         this.editTodo = this.editTodo.bind(this)
         this.deleteTodo = this.deleteTodo.bind(this)
 
@@ -39,6 +49,8 @@ export default class TodosList extends Component {
 
     // What is the use of 'componentDidMount' lifecycle method? 
     // the class component uses the componentDidMount lifecycle method to fetch data when the component is mounted. In functional components, the equivalent effect can be achieved using the useEffect hook.
+
+    
     componentDidMount() {
         // Used to fetch to-do items from a specified API endpoint
         axios
@@ -52,10 +64,40 @@ export default class TodosList extends Component {
             })
     }
 
+    toggleTodoCompleted(id) {
+          // Find the todo item by ID
+        const todoToUpdate = this.state.todos.find(todo => todo._id === id);
+        
+        // Make a PUT request to update the 'completed' property of the todo
+        axios
+          .post(`https://tracker-fe-practice.onrender.com/todos/update/${id}`, {
+              completed: !todoToUpdate.completed, // Toggle the completed property
+              activity: todoToUpdate.activity, // Include the activity filled in the payload
+          })
+            .then(response => {
+                // Ensure the response data is an array
+                // const updatedTodos = Array.isArray(response.data) ? response.data : []; -> keeping this just in case I'll need it
+
+                // this handles the issue about page having to be refreshed first since it loads blank
+                // { ...todo }: This creates a new object with all the properties of the original todo object. It's a concise way of copying the properties.
+                // { ...todo, completed: !todo.completed }: This takes the copied properties of todo and updates the completed property to its opposite value (!todo.completed).
+                // This usage of the spread syntax helps ensure immutability, which is often a good practice in React. It prevents unintentional side effects when updating state and helps with better state management.
+
+                this.setState(prevState => ({
+                    todos: prevState.todos.map(todo =>
+                        todo._id === id ? { ...todo, completed: !todo.completed } : todo
+                    ),
+                }));
+          })
+          .catch(error => {
+            console.error('Update failed :(', error.response);
+          });
+      }
+
     // The deleteTodo method is used to delete a to-do item. It makes an HTTP DELETE request to the specified API endpoint, 
     // and if successful, it updates the state by removing the deleted item from the todos array using filter.
     editTodo(id) {
-        // Set the editingTodo in the state to the todo with the given id
+        // Set the editingTodo in the state to the todo with the given id, issue ko dito is pagkaclick ng Edit hindi instant!!
         this.setState((prevState) => {
             return {
                 editingTodo: prevState.todos.find((todo) => todo._id === id),
@@ -64,30 +106,31 @@ export default class TodosList extends Component {
           });
     }
 
-    handleEditFormSubmit = (event) => {
+    handleEditFormSubmit = async (event) => {
         event.preventDefault();
     
         const { _id, activity } = this.state.editingTodo;
-        
-        // Make a POST request to update the todo
-        axios
-          .post(`https://tracker-fe-practice.onrender.com/todos/update/${_id}`, { activity })
-          .then((response) => {
-              console.log("Updated successful!", response.data);
-              
-              if (Array.isArray(response.data)) {
-                  // Clear the editingTodo and update the state with the new todos
+        try {
+            // Make a POST request to update the todo
+            const response = await axios.post(`https://tracker-fe-practice.onrender.com/todos/update/${_id}`, { activity })
+            console.log("Updated successfully!", response.data);
+
+            if (Array.isArray(response.data)) {
+                // Clear the editingTodo and update the state with the new todos
+                              
                 this.setState({
                     editingTodo: null,
                     todos: response.data,
-                  });
-              } 
-              
-            })
-          .catch((error) => {
-              console.error("Updated failed :(", error.response);
-            // console.log(error);
-          });
+                });
+
+                setTimeout(() => {
+                    window.location.reload();
+                }, 100);        
+
+            }
+        } catch (error) {
+            console.error("Updated failed :(", error.response);
+        }
       };
     
       handleEditInputChange = (event) => {
@@ -116,6 +159,7 @@ export default class TodosList extends Component {
                 todo={currenttodo}
                 editTodo={this.editTodo}
                 deleteTodo={this.deleteTodo}
+                toggleTodoCompleted={this.toggleTodoCompleted}
                 key={currenttodo._id}
             />;
         })
